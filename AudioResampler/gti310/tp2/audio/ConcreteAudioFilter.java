@@ -55,9 +55,11 @@ package gti310.tp2.audio;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
 
 import gti310.tp2.io.FileSink;
 import gti310.tp2.io.FileSource;
+import sun.security.util.ByteArrayTagOrder;
 
 public class ConcreteAudioFilter implements AudioFilter {
 
@@ -90,6 +92,8 @@ public class ConcreteAudioFilter implements AudioFilter {
 	private byte[] subChunk2Size; // 4 octets
 	private byte[] data; //données du fichier .wav
 	
+	//Essayer d'isoler le nombre de data
+	private long myDataSize;
 	
 	
 	/*http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte*/
@@ -105,20 +109,34 @@ public class ConcreteAudioFilter implements AudioFilter {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	/*http://stackoverflow.com/questions/7619058/convert-a-byte-array-to-integer-in-java-and-vise-versa*/
+	int byteArrayToInt(byte[] bytes) {
+	     return bytes[0]  | (bytes[1] & 0xFF) << 8 | (bytes[2] & 0xFF) << 16 | (bytes[3] & 0xFF << 24);
+	}
 
+	
 	@Override
 	public void process() {
-		chunkID = stereoFile.pop(fourbits);
-		chunkSize = stereoFile.pop(fourbits);
-		format = stereoFile.pop(fourbits);
-		subChunk1Id = stereoFile.pop(fourbits);
-		subChunk1Format = stereoFile.pop(fourbits);
-		audioFormat = stereoFile.pop(twobits);
-		numChannels = stereoFile.pop(twobits);
-		sampleRate = stereoFile.pop(fourbits);
+		chunkID = stereoFile.pop(4);
+		chunkSize = stereoFile.pop(4);
+		format = stereoFile.pop(4);
+		subChunk1Id = stereoFile.pop(4);
+		subChunk1Format = stereoFile.pop(4);
+		audioFormat = stereoFile.pop(2);
+		numChannels = stereoFile.pop(2);
+		sampleRate = stereoFile.pop(4);
+		byteRate = stereoFile.pop(4);
+		blockAllign = stereoFile.pop(2);
+		bitsPerSample = stereoFile.pop(2);
+		subChunk2Id = stereoFile.pop(4);
+		subChunk2Size = stereoFile.pop(4);
 		
+		myDataSize = byteArrayToInt(subChunk2Size);
 		
-		
+		System.out.println(myDataSize);
+	
 	}
 
 }
