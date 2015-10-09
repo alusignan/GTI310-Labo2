@@ -68,10 +68,6 @@ public class ConcreteAudioFilter implements AudioFilter {
 	private FileSink monoFile;
 	private String stereoLocation, monoLocation;
 	
-	//Constante de conversion
-	private final int twobits = 16;
-	private final int fourbits = 32;
-	
 	//HEADER du fichier .wav
 	private byte[] chunkID; // 4 octets
 	private byte[] chunkSize; // 4 octets 
@@ -79,7 +75,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 	//FORMAT du fichier .wav
 	private byte[] subChunk1Id; // 4 octets
-	private byte[] subChunk1Format; // 4 octets
+	private byte[] subChunk1Size; // 4 octets
  	private byte[] audioFormat; // 2 octets
 	private byte[] numChannels; // 2 octets
 	private byte[] sampleRate; // 4 octets
@@ -112,8 +108,30 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 	
 	/*http://stackoverflow.com/questions/7619058/convert-a-byte-array-to-integer-in-java-and-vise-versa*/
-	int byteArrayToInt(byte[] bytes) {
+	//Little Endian 4 Bytes Array converter
+	int byteArrayToInt4(byte[] bytes) {
 	     return bytes[0]  | (bytes[1] & 0xFF) << 8 | (bytes[2] & 0xFF) << 16 | (bytes[3] & 0xFF << 24);
+	}
+	
+	//Little Endien 2 Bytes Array converter
+	int byteArrayToInt2(byte[] bytes) {
+	     return bytes[0]  | (bytes[1] & 0xFF) << 8;
+	}
+	//Little Endian 4 Bytes Array converter (From INTEGER)
+	byte[] intToByteArray4(long value) {
+	    return new byte[] { 
+	    	(byte)value,
+	    	(byte)(value >> 8),
+	    	(byte)(value >> 16),
+	        (byte)(value >> 24)
+	    };
+	}
+	//Little Endian 2 Bytes Array converter (From INTEGER)
+	byte[] intToByteArray2(long value) {
+	    return new byte[] { 
+	    	(byte)(value >> 8),
+	    	(byte)value
+	    };
 	}
 
 	
@@ -123,7 +141,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 		chunkSize = stereoFile.pop(4);
 		format = stereoFile.pop(4);
 		subChunk1Id = stereoFile.pop(4);
-		subChunk1Format = stereoFile.pop(4);
+		subChunk1Size = stereoFile.pop(4);
 		audioFormat = stereoFile.pop(2);
 		numChannels = stereoFile.pop(2);
 		sampleRate = stereoFile.pop(4);
@@ -133,10 +151,41 @@ public class ConcreteAudioFilter implements AudioFilter {
 		subChunk2Id = stereoFile.pop(4);
 		subChunk2Size = stereoFile.pop(4);
 		
-		myDataSize = byteArrayToInt(subChunk2Size);
 		
-		System.out.println(myDataSize);
-	
+		System.out.println(byteArrayToInt2(numChannels));
+		//Store the number of byte in the file
+		myDataSize = byteArrayToInt4(subChunk2Size);
+		
+		
+		
+		//Création du nouveau chunk Size
+		byte[] newChunkSize = intToByteArray4((myDataSize/2) + 36);
+		
+		//Il y a seulement 1 channel
+		byte[] newNumChannels = intToByteArray2(1);
+		
+		//Création du nouveau byte rate
+		byte[] newByteRate = intToByteArray4(byteArrayToInt4(sampleRate) * (byteArrayToInt2(bitsPerSample)/8));
+		
+		//Création du nouveau block allign
+		byte[] newBlockAllign = intToByteArray2((byteArrayToInt2(bitsPerSample)/8));
+		
+		//Création du nouveau fichier mono
+		monoFile.push(chunkID); //4 octets
+		monoFile.push(newChunkSize); //4 octets
+		monoFile.push(format); //4 octets
+		monoFile.push(subChunk1Id); //4 octets
+		monoFile.push(subChunk1Size); //4 octets
+		monoFile.push(audioFormat); //2 octets
+		monoFile.push(newNumChannels); //2 octets
+		monoFile.push(sampleRate); //4 octets
+		monoFile.push(newByteRate); //4 octets
+		monoFile.push(newBlockAllign); //4 octets
+		monoFile.push(bitsPerSample);//2 octets
+		monoFile.push(newBlockAllign);//2 octets
+		monoFile.push(subChunk2Id);//2 octets
+		
+		//rendu à faire le boute le fun !!!!
 	}
 
 }

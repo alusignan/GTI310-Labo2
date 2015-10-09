@@ -19,6 +19,9 @@ public class Application {
 		else if (args[0].equals("Programme2")) {
 			//Écrit ton code ici Benoit Richard Panini
 		}
+		else {
+			System.out.println("Wut!?");
+		}
 		
 	}
 }
