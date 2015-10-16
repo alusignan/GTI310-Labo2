@@ -48,14 +48,16 @@ public class SNRFilter implements AudioFilter {
 		
 		/*Lire les bits 40-44 pour savoir cmb de temps loop*/
 		
-		 for (int i = 1; i <= 04; i--){
-			 int source;
-			 int TotalInt = 0;
-			 
-			 source = byteArrayToInt(sourceFile.pop(1));
-			 TotalInt= source+TotalInt;
-			 System.out.println("allo"+TotalInt);
-		 }
+		//Plus une boucle avec celui là je crois
+		TotalDataSource = sourceFile.pop(4);
+		int myDataSizeSource = byteArrayToInt(DataArraySource);
+		
+		//Pas sur que tu as besoin de boucler avec celui là
+		TotalDataModified = modifiedFile.pop(4);
+		int myDataSizeModified = byteArrayToInt(DataArrayModified);
+		
+		System.out.println(myDataSizeSource);
+	
 		
 		/*Loop sur les bits 44 et + pour calculer l'échantillion*/
 	}

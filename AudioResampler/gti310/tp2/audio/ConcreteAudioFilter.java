@@ -108,12 +108,13 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 	
 	/*http://stackoverflow.com/questions/7619058/convert-a-byte-array-to-integer-in-java-and-vise-versa*/
-	//Little Endian 4 Bytes Array converter
+	
+	//Little Endian 4 Bytes Array converter (from Bytes Array)
 	int byteArrayToInt4(byte[] bytes) {
 	     return bytes[0]  | (bytes[1] & 0xFF) << 8 | (bytes[2] & 0xFF) << 16 | (bytes[3] & 0xFF << 24);
 	}
 	
-	//Little Endien 2 Bytes Array converter
+	//Little Endian 2 Bytes Array converter (from Bytes Array)
 	int byteArrayToInt2(byte[] bytes) {
 	     return bytes[0]  | (bytes[1] & 0xFF) << 8;
 	}
@@ -186,6 +187,9 @@ public class ConcreteAudioFilter implements AudioFilter {
 		monoFile.push(subChunk2Id);//2 octets
 		
 		//rendu à faire le boute le fun !!!!
+		
+		monoFile.close();
+		stereoFile.close();
 	}
 
 }
