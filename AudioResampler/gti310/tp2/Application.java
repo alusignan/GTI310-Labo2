@@ -1,6 +1,7 @@
 package gti310.tp2;
 
 import gti310.tp2.audio.ConcreteAudioFilter;
+import gti310.tp2.audio.SNRFilter;
 
 public class Application {
 
@@ -17,11 +18,17 @@ public class Application {
 			caf.process(); 
 		}
 		else if (args[0].equals("Programme2")) {
-			//Écrit ton code ici Benoit Richard Panini
+			System.out.println(args[0]);
+			if (args[0].equals("Programme2")) {
+				System.out.println("SNR project!");
+				SNRFilter snr = new SNRFilter();
+				snr.InuputOutputFile(args[1],args[2]);
+				snr.process();
 		}
 		else {
 			System.out.println("Wut!?");
 		}
 		
 	}
+}
 }
