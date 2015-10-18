@@ -210,23 +210,22 @@ public class ConcreteAudioFilter implements AudioFilter {
 			//Tableau de byte pour stocker les données en mono
 			byte[] mono = new byte[(int)myDataSize/2];
 			
+			
 			//typecast .. (short)....
 			for (int i = 0; i < ((int)myDataSize/2) - 1; i++) {
-				int HI = 0; int LO = 1;
-				int left = (data[i] << 8) | (data[i] & 0xff);
-				int right = (data[i + 2] << 8) | (data[i + 2] & 0xff);
-				short avg = (short)((left+right)/2);
-				mono[i  + HI] = (byte)((avg >> 8) & 0xff);
-				mono[i  + LO] = (byte)(avg & 0xff);
+				int left = (data[i] << 8) | (data[i + 1] & 0xff);
+				int right = (data[i + 2] << 8) | (data[i + 3] & 0xff);
+				int avg = ((left+right)/2);
+				mono[i] = (byte)((avg >> 8) & 0xff);
+				mono[i+1] = (byte)(avg & 0xff);
 
 //				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-//				byte[] sourceLeft = stereoFile.pop(2);
-//				short left = (short)byteArrayToInt2(sourceLeft);
+
 //				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-//				byte[] sourceRight = stereoFile.pop(2);
-//				short right = (short)byteArrayToInt2(sourceRight);		
-//				short avg = (short)((left + right)/2);
+	
+//				short avg = ((left + right)/2);
 //				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
+				
 			}
 			System.out.println("Done!");
 			//Création du data dans le fichier mono
