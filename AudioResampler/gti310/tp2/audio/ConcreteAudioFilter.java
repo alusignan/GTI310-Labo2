@@ -55,7 +55,6 @@ package gti310.tp2.audio;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-//import java.nio.Bytedata;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -68,7 +67,6 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 	public FileSource stereoFile;
 	public FileSink monoFile;
-	private String stereoLocation, monoLocation;
 	
 	//HEADER du fichier .wav
 	private byte[] chunkID; // 4 octets
@@ -100,6 +98,8 @@ public class ConcreteAudioFilter implements AudioFilter {
 	/*http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte*/
 	/*http://stackoverflow.com/questions/4714542/pcm-wave-file-stereo-to-mono*/
 	
+	
+	//Méthode pour lire le fichier stereo et enregistrer le fichier mono
 	public void InuputOutputFile(String stereoLocation, String monoLocation) {
 		try {
 			stereoFile = new FileSource(stereoLocation);
@@ -160,79 +160,80 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 		//Store the number of byte in the file
 		myDataSize = byteArrayToInt4(subChunk2Size);
+		int numCanalValidation = byteArrayToInt2(numChannels);
 		
+		//on insère les données dans un tableau avec un pop de la longueur du data total
 		data = stereoFile.pop((int)myDataSize);
 		
-		System.out.println(myDataSize);
+		System.out.println("La taille du fichier est de : " +myDataSize+ " octets.");
+		System.out.println("Le nombre de canal est de : " +numCanalValidation);
 		
-		
-		
-		//Création du nouveau chunk Size
-		byte[] newChunkSize = intToByteArray4((myDataSize/2) + 36);
-		
-		//Il y a seulement 1 channel
-		byte[] newNumChannels = intToByteArray2(1);
-		
-		//Création du nouveau byte rate
-		byte[] newByteRate = intToByteArray4(byteArrayToInt4(sampleRate) * (byteArrayToInt2(bitsPerSample)/8));
-		
-		//Création du nouveau block allign
-		byte[] newBlockAllign = intToByteArray2((byteArrayToInt2(bitsPerSample)/8));
-		
-		//Nouveau chunk size (on divise en 2 car il y a moitié moins de data)
-		byte[] newSubChunk2Size = intToByteArray4(myDataSize/2);
-		
-		//Création du nouveau fichier mono
-		monoFile.push(chunkID); //4 octets
-		monoFile.push(newChunkSize); //4 octets
-		monoFile.push(format); //4 octets
-		monoFile.push(subChunk1Id); //4 octets
-		monoFile.push(subChunk1Size); //4 octets
-		monoFile.push(audioFormat); //2 octets
-		monoFile.push(newNumChannels); //2 octets
-		monoFile.push(sampleRate); //4 octets
-		monoFile.push(newByteRate); //4 octets
-		monoFile.push(newBlockAllign); //4 octets
-		monoFile.push(bitsPerSample);//2 octets
-		monoFile.push(subChunk2Id);//2 octets
-		monoFile.push(newSubChunk2Size); //4 octets
-		
-		//http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte
-		
-		
-		byte[] mono = new byte[(int)myDataSize/2];
-		//int position = ((int)myDataSize/2);
-		
-		//System.out.println(data.length);
-		//System.out.println(position);
-		
-		//typecast .. (short)....
-		for (int i = 0; i < ((int)myDataSize/2) - 1; i++) {
-			//System.out.println(i);
-			int HI = 0; int LO = 1;
-			int left = (data[i] << 8) | (data[i] & 0xff);
-			int right = (data[i + 2] << 8) | (data[i + 2] & 0xff);
-			short avg = (short)((left+right)/2);
-			mono[i  + HI] = (byte)((avg >> 8) & 0xff);
-			mono[i  + LO] = (byte)(avg & 0xff);
-
-//			short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-//			byte[] sourceLeft = stereoFile.pop(2);
-//			short left = (short)byteArrayToInt2(sourceLeft);
-//			short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-//			byte[] sourceRight = stereoFile.pop(2);
-//			short right = (short)byteArrayToInt2(sourceRight);		
-//			short avg = (short)((left + right)/2);
-//			monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
-			
-			
+		//Validation du nombre de canal (tel que demandé) si = 1 on ne fait rien
+		if (numCanalValidation == 1) {
+			System.out.println("Ce fichier est déjà au format mono, aucune opération n'a été effectuée.");
 		}
+		else {
+			//Création du nouveau chunk Size selon le calcul (données totale /2 --> moitié moins pour mono) + 36
+			byte[] newChunkSize = intToByteArray4((myDataSize/2) + 36);
+			
+			//Il y a seulement 1 channel (conversion de 1 en byte)
+			byte[] newNumChannels = intToByteArray2(1);
+			
+			//Création du nouveau byte rate selon le calcul (fréquence de l'échantillion * bits par échantillion/8
+			byte[] newByteRate = intToByteArray4(byteArrayToInt4(sampleRate) * (byteArrayToInt2(bitsPerSample)/8));
+			
+			//Création du nouveau block allign selon le calcul (bits par échantillion / 8)
+			byte[] newBlockAllign = intToByteArray2((byteArrayToInt2(bitsPerSample)/8));
+			
+			//Nouveau chunk size (on divise en 2 car il y a moitié moins de data)
+			byte[] newSubChunk2Size = intToByteArray4(myDataSize/2);
+			
+			//Création du nouveau fichier mono (entête)
+			monoFile.push(chunkID); //4 octets
+			monoFile.push(newChunkSize); //4 octets
+			monoFile.push(format); //4 octets
+			monoFile.push(subChunk1Id); //4 octets
+			monoFile.push(subChunk1Size); //4 octets
+			monoFile.push(audioFormat); //2 octets
+			monoFile.push(newNumChannels); //2 octets
+			monoFile.push(sampleRate); //4 octets
+			monoFile.push(newByteRate); //4 octets
+			monoFile.push(newBlockAllign); //4 octets
+			monoFile.push(bitsPerSample);//2 octets
+			monoFile.push(subChunk2Id);//2 octets
+			monoFile.push(newSubChunk2Size); //4 octets
+			
+			
+			/*Toute la boucle for est basée sur cette question de stackoverflow*/
+			//http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte
+			
+			//Tableau de byte pour stocker les données en mono
+			byte[] mono = new byte[(int)myDataSize/2];
+			
+			//typecast .. (short)....
+			for (int i = 0; i < ((int)myDataSize/2) - 1; i++) {
+				int HI = 0; int LO = 1;
+				int left = (data[i] << 8) | (data[i] & 0xff);
+				int right = (data[i + 2] << 8) | (data[i + 2] & 0xff);
+				short avg = (short)((left+right)/2);
+				mono[i  + HI] = (byte)((avg >> 8) & 0xff);
+				mono[i  + LO] = (byte)(avg & 0xff);
+
+//				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+//				byte[] sourceLeft = stereoFile.pop(2);
+//				short left = (short)byteArrayToInt2(sourceLeft);
+//				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+//				byte[] sourceRight = stereoFile.pop(2);
+//				short right = (short)byteArrayToInt2(sourceRight);		
+//				short avg = (short)((left + right)/2);
+//				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
+			}
+			System.out.println("Done!");
+			//Création du data dans le fichier mono
+			monoFile.push(mono);
+		}	
 		
-		System.out.println("Done!");
-		monoFile.push(mono);
-		
-		
-		
+		//Fermeture des deux fichiers.
 		monoFile.close();
 		stereoFile.close();
 	}
