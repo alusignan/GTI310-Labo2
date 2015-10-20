@@ -163,7 +163,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 		int numCanalValidation = byteArrayToInt2(numChannels);
 		
 		//on insère les données dans un tableau avec un pop de la longueur du data total
-		data = stereoFile.pop((int)myDataSize);
+		//data = stereoFile.pop((int)myDataSize);
 		
 		System.out.println("La taille du fichier est de : " +myDataSize+ " octets.");
 		System.out.println("Le nombre de canal est de : " +numCanalValidation);
@@ -213,23 +213,23 @@ public class ConcreteAudioFilter implements AudioFilter {
 			
 			//typecast .. (short)....
 			for (int i = 0; i < ((int)myDataSize/2) - 1; i++) {
-				int left = (data[i] << 8) | (data[i + 1] & 0xff);
-				int right = (data[i + 2] << 8) | (data[i + 3] & 0xff);
-				int avg = ((left+right)/2);
-				mono[i] = (byte)((avg >> 8) & 0xff);
-				mono[i+1] = (byte)(avg & 0xff);
+//				int left = (data[i] << 8) | (data[i + 1] & 0xff);
+//				int right = (data[i + 2] << 8) | (data[i + 3] & 0xff);
+//				int avg = ((left+right)/2);
+//				mono[i] = (byte)((avg >> 8) & 0xff);
+//				mono[i+1] = (byte)(avg & 0xff);
 
-//				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
 
-//				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
 	
-//				short avg = ((left + right)/2);
-//				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
+				short avg = (short) ((left + right)/2);
+				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
 				
 			}
 			System.out.println("Done!");
 			//Création du data dans le fichier mono
-			monoFile.push(mono);
+			//monoFile.push(mono);
 		}	
 		
 		//Fermeture des deux fichiers.
