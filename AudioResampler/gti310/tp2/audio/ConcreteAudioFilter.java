@@ -160,6 +160,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 		//Store the number of byte in the file
 		myDataSize = byteArrayToInt4(subChunk2Size);
+		//Conversion pour valider le nombre de canal (énoncé)
 		int numCanalValidation = byteArrayToInt2(numChannels);
 		
 		//on insère les données dans un tableau avec un pop de la longueur du data total
@@ -172,6 +173,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 		if (numCanalValidation == 1) {
 			System.out.println("Ce fichier est déjà au format mono, aucune opération n'a été effectuée.");
 		}
+		//Sinon
 		else {
 			//Création du nouveau chunk Size selon le calcul (données totale /2 --> moitié moins pour mono) + 36
 			byte[] newChunkSize = intToByteArray4((myDataSize/2) + 36);
@@ -208,11 +210,11 @@ public class ConcreteAudioFilter implements AudioFilter {
 			//http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte
 			
 			//Tableau de byte pour stocker les données en mono
-			byte[] mono = new byte[(int)myDataSize/2];
+			//byte[] mono = new byte[(int)myDataSize/2];
 			
 			
 			//typecast .. (short)....
-			for (int i = 0; i < ((int)myDataSize/2) - 1; i++) {
+			for (int i = 0; i < ((int)myDataSize/2) - 1; i+=2) {
 //				int left = (data[i] << 8) | (data[i + 1] & 0xff);
 //				int right = (data[i + 2] << 8) | (data[i + 3] & 0xff);
 //				int avg = ((left+right)/2);
@@ -220,9 +222,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 //				mono[i+1] = (byte)(avg & 0xff);
 
 				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-
 				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
-	
 				short avg = (short) ((left + right)/2);
 				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
 				
