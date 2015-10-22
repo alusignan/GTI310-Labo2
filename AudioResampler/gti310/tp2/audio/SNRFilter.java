@@ -30,6 +30,7 @@ public class SNRFilter implements AudioFilter {
 	long calcTop;
 	long calcBot;
 	long calcBot2;
+
 //la liste ou sera stocker les valeurs a comparer	
     List<Double> SNRtbl = new ArrayList<Double>(8);
 	
@@ -63,6 +64,8 @@ public class SNRFilter implements AudioFilter {
 	@Override
 	public void process() {
 		
+		int t=0;
+		
 		//Skip le header source
 		HeaderSource = sourceFile.pop(40);
 		
@@ -75,7 +78,7 @@ public class SNRFilter implements AudioFilter {
 // la variable qui permet de prendre le hexa et le mettre en entier		
 		int myDataSizeSource = ByteBuffer.wrap(TotalDataSource).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		
-		System.out.println(myDataSizeSource);
+		//System.out.println(myDataSizeSource);
 		
 		calcTotTop =0;
 		calcTotBot =0;
@@ -99,17 +102,21 @@ public class SNRFilter implements AudioFilter {
 			calcTotBot += (long) (calcBot2);
 			
 		}
+		t=8;
 //calcul final avec les valeurs plus haut
 		calcSNR = (double) (10*Math.log10(calcTotTop/calcTotBot));
 //ajout de la valeur d'un calcul à la liste
 //Calcule bon individuellement mais a plusieurs mauvais résultat		
 		SNRtbl.add(calcSNR);
-//Trie des résultats		
-		for (int i=0; i<SNRtbl.size();i++){
+//Trie des résultats
+
+if(t == SNRtbl.size()){
+		for (int i=0; i<SNRtbl.size();i++){     //O(N)
+			//System.out.println((SNRtbl.get(i)));
 			Collections.sort(SNRtbl);
 			System.out.println((SNRtbl.get(i)));
 		}
-		
+}	
 		/*Loop sur les bits 44 et + pour calculer l'échantillion*/
 	}
 
