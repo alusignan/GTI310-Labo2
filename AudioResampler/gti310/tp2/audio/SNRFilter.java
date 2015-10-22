@@ -62,7 +62,6 @@ public class SNRFilter implements AudioFilter {
 //fonction principale	
 	@Override
 	public void process() {
-		int t=0;
 		
 		//Skip le header source
 		HeaderSource = sourceFile.pop(40);
@@ -77,6 +76,9 @@ public class SNRFilter implements AudioFilter {
 		int myDataSizeSource = ByteBuffer.wrap(TotalDataSource).order(ByteOrder.LITTLE_ENDIAN).getInt();
 		
 		System.out.println(myDataSizeSource);
+		
+		calcTotTop =0;
+		calcTotBot =0;
 		
 		for(int i=0; i<myDataSizeSource; i++){
 			
