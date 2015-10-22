@@ -83,7 +83,7 @@ public class SNRFilter implements AudioFilter {
 		calcTotTop =0;
 		calcTotBot =0;
 		
-		for(int i=0; i<myDataSizeSource; i++){
+		for(int i=0; i<myDataSizeSource; i++){ //O(N)
 			
 			long dataOri2 = 0;
 			long calcBot = 0;
@@ -96,15 +96,15 @@ public class SNRFilter implements AudioFilter {
 //Tout le calculs qui permettre d'avoir la valeur du SNR			
 			dataOri2 = (long) (dataOri*dataOri);
 			
-			calcBot = (long) (dataOri-dataModif);
-			calcBot2 = (long) (calcBot*calcBot);
-			calcTotTop += (long) (dataOri2);
-			calcTotBot += (long) (calcBot2);
+			calcBot = (long) (dataOri-dataModif); //O(1)
+			calcBot2 = (long) (calcBot*calcBot);  //O(1)
+			calcTotTop += (long) (dataOri2);      //O(1)
+			calcTotBot += (long) (calcBot2);      //O(1)
 			
 		}
 		t=8;
 //calcul final avec les valeurs plus haut
-		calcSNR = (double) (10*Math.log10(calcTotTop/calcTotBot));
+		calcSNR = (double) (10*Math.log10(calcTotTop/calcTotBot)); //O(1)
 //ajout de la valeur d'un calcul à la liste
 //Calcule bon individuellement mais a plusieurs mauvais résultat		
 		SNRtbl.add(calcSNR);
