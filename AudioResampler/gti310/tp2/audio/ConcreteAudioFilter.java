@@ -53,20 +53,22 @@ The "data" subchunk contains the size of the data and the actual sound:
 
 package gti310.tp2.audio;
 
-import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import gti310.tp2.io.FileSink;
 import gti310.tp2.io.FileSource;
-import sun.security.util.ByteArrayTagOrder;
+
 
 public class ConcreteAudioFilter implements AudioFilter {
 
 	
 	public FileSource stereoFile;
 	public FileSink monoFile;
+	
+	/*Déclaration des variables pour l'en-tête, séparées pour les manipuler plus facilement*/
 	
 	//HEADER du fichier .wav
 	private byte[] chunkID; // 4 octets
@@ -92,14 +94,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 	private long myDataSize;
 	
 	
-	
-	
-	
-	/*http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte*/
-	/*http://stackoverflow.com/questions/4714542/pcm-wave-file-stereo-to-mono*/
-	
-	
-	//Méthode pour lire le fichier stereo et enregistrer le fichier mono
+	/*Méthode pour lire le fichier stereo et enregistrer le fichier mono*/
 	public void InuputOutputFile(String stereoLocation, String monoLocation) {
 		try {
 			stereoFile = new FileSource(stereoLocation);
@@ -113,17 +108,16 @@ public class ConcreteAudioFilter implements AudioFilter {
 	
 	
 	/*http://stackoverflow.com/questions/7619058/convert-a-byte-array-to-integer-in-java-and-vise-versa*/
-	
-	//Little Endian 4 Bytes Array converter (from Bytes Array)
+	/*Little Endian 4 Bytes Array converter (from Bytes Array)*/
 	int byteArrayToInt4(byte[] bytes) {
 	     return bytes[0]  | (bytes[1] & 0xFF) << 8 | (bytes[2] & 0xFF) << 16 | (bytes[3] & 0xFF << 24);
 	}
 	
-	//Little Endian 2 Bytes Array converter (from Bytes Array)
+	/*Little Endian 2 Bytes Array converter (from Bytes Array)*/
 	int byteArrayToInt2(byte[] bytes) {
 	     return bytes[0]  | (bytes[1] & 0xFF) << 8;
 	}
-	//Little Endian 4 Bytes Array converter (From LONG)
+	/*Little Endian 4 Bytes Array converter (From LONG)*/
 	byte[] intToByteArray4(long value) {
 	    return new byte[] { 
 	    	(byte)value,
@@ -132,7 +126,7 @@ public class ConcreteAudioFilter implements AudioFilter {
 	        (byte)(value >> 24)
 	    };
 	}
-	//Little Endian 2 Bytes Array converter (From LONG)
+	/*Little Endian 2 Bytes Array converter (From LONG)*/
 	byte[] intToByteArray2(long value) {
 	    return new byte[] { 
 	    	(byte)value,
@@ -142,29 +136,29 @@ public class ConcreteAudioFilter implements AudioFilter {
 
 	
 	@Override
+	/*Process function where the magic happen*/
 	public void process() {
-		chunkID = stereoFile.pop(4);
-		chunkSize = stereoFile.pop(4);
-		format = stereoFile.pop(4);
-		subChunk1Id = stereoFile.pop(4);
-		subChunk1Size = stereoFile.pop(4);
-		audioFormat = stereoFile.pop(2);
-		numChannels = stereoFile.pop(2);
-		sampleRate = stereoFile.pop(4);
-		byteRate = stereoFile.pop(4);
-		blockAllign = stereoFile.pop(2);
-		bitsPerSample = stereoFile.pop(2);
-		subChunk2Id = stereoFile.pop(4);
-		subChunk2Size = stereoFile.pop(4);
+		//Ces opérations ont une complexité de O(1)
+		chunkID = stereoFile.pop(4); //Lecture de 4 octets
+		chunkSize = stereoFile.pop(4); //Lecture de 4 octets
+		format = stereoFile.pop(4); //Lecture de 4 octets
+		subChunk1Id = stereoFile.pop(4); //Lecture de 4 octets
+		subChunk1Size = stereoFile.pop(4); //Lecture de 4 octets
+		audioFormat = stereoFile.pop(2); //Lecture de 2 octets
+		numChannels = stereoFile.pop(2); //Lecture de 2 octets
+		sampleRate = stereoFile.pop(4); //Lecture de 4 octets
+		byteRate = stereoFile.pop(4); //Lecture de 4 octets
+		blockAllign = stereoFile.pop(2); //Lecture de 2 octets
+		bitsPerSample = stereoFile.pop(2); //Lecture de 2 octets
+		subChunk2Id = stereoFile.pop(4); //Lecture de 4 octets
+		subChunk2Size = stereoFile.pop(4); //Lecture de 4 octets
 		
 	
 		//Store the number of byte in the file
 		myDataSize = byteArrayToInt4(subChunk2Size);
+		
 		//Conversion pour valider le nombre de canal (énoncé)
 		int numCanalValidation = byteArrayToInt2(numChannels);
-		
-		//on insère les données dans un tableau avec un pop de la longueur du data total
-		//data = stereoFile.pop((int)myDataSize);
 		
 		System.out.println("La taille du fichier est de : " +myDataSize+ " octets.");
 		System.out.println("Le nombre de canal est de : " +numCanalValidation);
@@ -190,7 +184,9 @@ public class ConcreteAudioFilter implements AudioFilter {
 			//Nouveau chunk size (on divise en 2 car il y a moitié moins de data)
 			byte[] newSubChunk2Size = intToByteArray4(myDataSize/2);
 			
-			//Création du nouveau fichier mono (entête)
+			//Création du nouveau fichier mono (en-tête) seulement
+			
+			//Ces opération sont d'une complexité O(1)
 			monoFile.push(chunkID); //4 octets
 			monoFile.push(newChunkSize); //4 octets
 			monoFile.push(format); //4 octets
@@ -205,36 +201,31 @@ public class ConcreteAudioFilter implements AudioFilter {
 			monoFile.push(subChunk2Id);//2 octets
 			monoFile.push(newSubChunk2Size); //4 octets
 			
+		
+			/*Boucle for de taille des données/2 car il y en a moitié moins
+			 * Utilisation du ByteBuffer documentation trouvée sur le site web de Java
+			 * On isole gauche et droite ensuite on fait la moyenne des 2 avant de le 
+			 * mettre dans le fichier mono*/
 			
-			/*Toute la boucle for est basée sur cette question de stackoverflow*/
-			//http://stackoverflow.com/questions/16466515/convert-audio-stereo-to-audio-byte
-			
-			//Tableau de byte pour stocker les données en mono
-			//byte[] mono = new byte[(int)myDataSize/2];
-			
-			
-			//typecast .. (short)....
+			//Complexité O(N)
 			for (int i = 0; i < ((int)myDataSize/2) - 1; i+=2) {
-//				int left = (data[i] << 8) | (data[i + 1] & 0xff);
-//				int right = (data[i + 2] << 8) | (data[i + 3] & 0xff);
-//				int avg = ((left+right)/2);
-//				mono[i] = (byte)((avg >> 8) & 0xff);
-//				mono[i+1] = (byte)(avg & 0xff);
 
+				//Isole canal gauche avec le ByteBuffer en lisant les 2 octets
 				short left = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+				//Isole canal droite avec le ByteBuffer en lisant les 2 octets
 				short right = ByteBuffer.wrap(stereoFile.pop(2)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+				//On fait la moyenne
 				short avg = (short) ((left + right)/2);
+				//On enregistra dans le fichier a l'aide d'un Byte Buffer
 				monoFile.push(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(avg).array());
 				
 			}
 			System.out.println("Done!");
-			//Création du data dans le fichier mono
-			//monoFile.push(mono);
 		}	
 		
 		//Fermeture des deux fichiers.
-		monoFile.close();
-		stereoFile.close();
+		monoFile.close(); //O(1)
+		stereoFile.close(); //O(1)
 	}
 
 }
